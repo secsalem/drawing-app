@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drawing App</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; padding: 20px; }
+  h1 { margin-bottom: 12px; }
+  .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
+  .toolbar label { font-size: 14px; }
+  canvas { background: #fff; border: 2px solid #333; border-radius: 4px; cursor: crosshair; }
+  button { padding: 8px 16px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
+  .btn-clear { background: #e74c3c; color: #fff; }
+  .btn-download { background: #2ecc71; color: #fff; }
+  button:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+<h1>Drawing App</h1>
+<div class="toolbar">
+  <label>Color: <input type="color" id="color" value="#000000"></label>
+  <label>Size: <input type="range" id="size" min="1" max="30" value="3"></label>
+  <button class="btn-clear" id="clearBtn">Clear</button>
+  <button class="btn-download" id="downloadBtn">Download PDF</button>
+</div>
+<canvas id="canvas" width="800" height="600"></canvas>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const colorInput = document.getElementById('color');
+  const sizeInput = document.getElementById('size');
+  let drawing = false;
+
+  canvas.addEventListener('pointerdown', e => {
+    drawing = true;
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY);
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!drawing) return;
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.strokeStyle = colorInput.value;
+    ctx.lineWidth = sizeInput.value;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  });
+
+  canvas.addEventListener('pointerup', () => drawing = false);
+  canvas.addEventListener('pointerleave', () => drawing = false);
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('landscape', 'px', [canvas.width, canvas.height]);
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save('drawing.pdf');
+  });
+</script>
+</body>
+</html>
